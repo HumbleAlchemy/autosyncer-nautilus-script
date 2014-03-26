@@ -7,6 +7,7 @@
 # ================================================== 
 
 import os
+import subprocess
 import json
 import logging
 from gi.repository import Nautilus, GObject
@@ -79,10 +80,12 @@ class ColumnExtension(GObject.GObject, Nautilus.MenuProvider):
     def add_file(self,file_name,parent_folder_path , cloud):
         data = self.__import_data()
         file_full_path = parent_folder_path + "/" + file_name
-
-        result = os.system("java -jar AddFileToAutosync.jar " + cloud["name"] + " " + str(cloud["user_cloudID"]) + " " + file_full_path)
         
-        if(result == 0 ):
+        jar_path = os.path.join(os.environ['HOME'],".local/share/nautilus-python/extensions/AddFileToAutosync.jar")
+        result = os.system("java -jar " + jar_path + " " + cloud["name"] + " " + str(cloud["user_cloudID"]) + " " + file_full_path)
+        # result = os.system("/home/abhishek/.local/share/nautilus-python/extensions/fileSync.sh " + cloud["name"] + " " + str(cloud["user_cloudID"]) + " " + file_full_path)
+
+        if(result == 0):
             # creating new dictionary element
             new_file_data = { "file" : file_name , "parent" : parent_folder_path , "name" : cloud["name"] , "user_cloud_name" : cloud["user_cloud_name"] , "user_cloudID" : cloud["user_cloudID"]}
         
@@ -115,10 +118,10 @@ class ColumnExtension(GObject.GObject, Nautilus.MenuProvider):
         data = self.__import_data()
         
         # Upload directory to cloud initially
-        result = os.system("java -jar AddToAutosync.jar " + cloud["name"] + " " + str(cloud["user_cloudID"]) + " " + folder_path)
+        jar_path = os.path.join(os.environ['HOME'],".local/share/nautilus-python/extensions/AddToAutosync.jar")
+        result = os.system("java -jar " + jar_path + "  " + cloud["name"] + " " + str(cloud["user_cloudID"]) + " " + folder_path)
         # result = 0
         # self.lgr.debug("result of folder add: " + str(result))
-        
         
         if(result == 0 ):
             # creating new dictionary element
