@@ -32,7 +32,7 @@ class ColumnExtension(GObject.GObject, Nautilus.MenuProvider):
     lgr.addHandler(fh)
     # ================= LOGGING ===================== 
 
-
+    
     # data file holds data of files and folders
     DATA_FILE = ".config/autosyncer/data.json"
     DATA_FILE_PATH = os.path.join(os.environ['HOME'],DATA_FILE)
@@ -78,15 +78,21 @@ class ColumnExtension(GObject.GObject, Nautilus.MenuProvider):
     # add file to JSON config file
     def add_file(self,file_name,parent_folder_path , cloud):
         data = self.__import_data()
+        file_full_path = parent_folder_path + "/" + file_name
 
-        # creating new dictionary element
-        new_file_data = { "file" : file_name , "parent" : parent_folder_path , "name" : cloud["name"] , "user_cloud_name" : cloud["user_cloud_name"] , "user_cloudID" : cloud["user_cloudID"]}
+        result = os.system("java -jar AddFileToAutosync.jar " + cloud["name"] + " " + str(cloud["user_cloudID"]) + " " + file_full_path)
         
-        # adding new file to data object
-        data["files"].append(new_file_data)
+        if(result == 0 ):
+            # creating new dictionary element
+            new_file_data = { "file" : file_name , "parent" : parent_folder_path , "name" : cloud["name"] , "user_cloud_name" : cloud["user_cloud_name"] , "user_cloudID" : cloud["user_cloudID"]}
+        
+            # adding new file to data object
+            data["files"].append(new_file_data)
 
-        # exporting data
-        self.__export_data(data)
+            # exporting data
+            self.__export_data(data)
+        
+
 
     # remove file to JSON config file
     def remove_file(self,file_name,parent_folder_path):
@@ -108,14 +114,27 @@ class ColumnExtension(GObject.GObject, Nautilus.MenuProvider):
     def add_folder(self,folder_path , cloud):
         data = self.__import_data()
         
-        # creating new dictionary element
-        new_folder_data = { "folder" : folder_path , "name" : cloud["name"] , "user_cloud_name" : cloud["user_cloud_name"] , "user_cloudID" : cloud["user_cloudID"] }
+        # Upload directory to cloud initially
+        result = os.system("java -jar AddToAutosync.jar " + cloud["name"] + " " + str(cloud["user_cloudID"]) + " " + folder_path)
+        # result = 0
+        # self.lgr.debug("result of folder add: " + str(result))
+        
+        
+        if(result == 0 ):
+            # creating new dictionary element
+        	new_folder_data = { 
+        		"folder" : folder_path , 
+        		"name" : cloud["name"] , 
+        		"user_cloud_name" : cloud["user_cloud_name"] , 
+        		"user_cloudID" : cloud["user_cloudID"] }
+	
+        	# addind new folder to data object
+        	data["folders"].append(new_folder_data)
 
-        # addind new folder to data object
-        data["folders"].append(new_folder_data)
-
-        # exporting data 
-        self.__export_data(data)
+        	# exporting data 
+        	self.__export_data(data)
+        
+        	# self.lgr.debug("result on error: " + str(result))
 
     # remove folder to JSON config file
     def remove_folder(self,folder_path):
